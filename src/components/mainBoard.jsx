@@ -241,16 +241,31 @@ export default class MainBoard extends Component {
             history: [],
             isMuted: sound.isMuted(),
             wonCelebrated: false,
+            scale: 1,
+            showHelp: false,
         };
 
         this.handleKeyDown = this.handleKeyDown.bind(this);
         this.restartGame = this.restartGame.bind(this);
         this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchMove = this.handleTouchMove.bind(this);
         this.handleTouchEnd = this.handleTouchEnd.bind(this);
         this.handleKeepGoing = this.handleKeepGoing.bind(this);
         this.handleUndo = this.handleUndo.bind(this);
         this.toggleSound = this.toggleSound.bind(this);
+        this.toggleHelp = this.toggleHelp.bind(this);
         this.makeMove = this.makeMove.bind(this);
+        this.updateDimensions = this.updateDimensions.bind(this);
+    }
+
+    updateDimensions() {
+        if (typeof window !== 'undefined') {
+            const availableWidth = Math.min(window.innerWidth - 32, 480);
+            const scale = Math.min(1, Math.max(0.64, availableWidth / 450));
+            if (scale !== this.state.scale) {
+                this.setState({ scale });
+            }
+        }
     }
 
     restartGame() {
@@ -290,6 +305,11 @@ export default class MainBoard extends Component {
     toggleSound() {
         const isMuted = sound.toggleMute();
         this.setState({ isMuted });
+    }
+
+    toggleHelp() {
+        sound.playClick();
+        this.setState((prev) => ({ showHelp: !prev.showHelp }));
     }
 
     makeMove(direction) {
@@ -362,39 +382,49 @@ export default class MainBoard extends Component {
 
     handleTouchStart(event) {
         if (event.touches.length !== 1) return;
-        this.startX = event.touches[0].screenX;
-        this.startY = event.touches[0].screenY;
+        this.startX = event.touches[0].clientX;
+        this.startY = event.touches[0].clientY;
+    }
+
+    handleTouchMove(event) {
+        if (event.touches.length === 1) {
+            // Prevent rubber-banding / browser pull-to-refresh
+            event.preventDefault();
+        }
     }
 
     handleTouchEnd(event) {
-        if (!this.startX || !this.startY || event.changedTouches.length !== 1) return;
-        const deltaX = event.changedTouches[0].screenX - this.startX;
-        const deltaY = event.changedTouches[0].screenY - this.startY;
-        let direction = -1;
+        if (this.startX === undefined || this.startY === undefined || event.changedTouches.length !== 1) return;
+        const deltaX = event.changedTouches[0].clientX - this.startX;
+        const deltaY = event.changedTouches[0].clientY - this.startY;
+        this.startX = undefined;
+        this.startY = undefined;
 
-        if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
-                direction = deltaX > 0 ? 2 : 0;
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        if (Math.max(absX, absY) > 25) {
+            if (absX > absY) {
+                this.makeMove(deltaX > 0 ? 2 : 0);
             } else {
-                direction = deltaY > 0 ? 3 : 1;
+                this.makeMove(deltaY > 0 ? 3 : 1);
             }
-        }
-
-        if (direction !== -1) {
-            this.makeMove(direction);
         }
     }
 
     componentDidMount() {
         window.addEventListener('keydown', this.handleKeyDown);
+        window.addEventListener('resize', this.updateDimensions);
+        this.updateDimensions();
     }
 
     componentWillUnmount() {
         window.removeEventListener('keydown', this.handleKeyDown);
+        window.removeEventListener('resize', this.updateDimensions);
     }
 
     render() {
-        const { board, score, bestScore, moves, scoreDelta, history, isMuted } = this.state;
+        const { board, score, bestScore, moves, scoreDelta, history, isMuted, scale, showHelp } = this.state;
 
         const cells = board.cells.map((row, rowIndex) => (
             <div className="grid-row" key={rowIndex}>
@@ -466,18 +496,46 @@ export default class MainBoard extends Component {
                         onClick={this.toggleSound}
                         title={isMuted ? 'Unmute audio' : 'Mute audio'}
                     >
-                        <span>{isMuted ? '🔇 Sound Off' : '🔊 Sound On'}</span>
+                        <span>{isMuted ? '🔇 Muted' : '🔊 Sound'}</span>
+                    </button>
+
+                    <button
+                        className="toolbar-btn help-btn"
+                        onClick={this.toggleHelp}
+                        title="How to play"
+                    >
+                        <span>❓ Rules</span>
                     </button>
                 </div>
 
-                {/* Main 4x4 Grid Board */}
+                {/* Optional Help Drawer */}
+                {showHelp && (
+                    <div className="help-box">
+                        <p>
+                            🎯 <strong>Rules:</strong> Use arrow keys or swipe to slide tiles. When two tiles with the same number touch, they merge into one! Reach the <strong>2048</strong> tile to win.
+                        </p>
+                    </div>
+                )}
+
+                {/* Main 4x4 Grid Board with dynamic fluid scaling */}
                 <main
                     className="board-container"
+                    style={{
+                        width: 450 * scale,
+                        height: 450 * scale,
+                    }}
                     onTouchStart={this.handleTouchStart}
+                    onTouchMove={this.handleTouchMove}
                     onTouchEnd={this.handleTouchEnd}
                     tabIndex="0"
                 >
-                    <div className="board">
+                    <div
+                        className="board"
+                        style={{
+                            transform: `scale(${scale})`,
+                            transformOrigin: 'top left',
+                        }}
+                    >
                         <div className="grid-container">{cells}</div>
                         <div className="tile-container">{tiles}</div>
                         <EndGame
