@@ -186,10 +186,14 @@ Board.prototype.hasLost = function () {
 export default class MainBoard extends Component {
     constructor(props) {
         super(props);
-        this.state = {board: new Board};
+        this.state = {board: new Board()};
+        this.handleKeyDown = this.handleKeyDown.bind(this);
+        this.restartGame = this.restartGame.bind(this);
+        this.handleTouchStart = this.handleTouchStart.bind(this);
+        this.handleTouchEnd = this.handleTouchEnd.bind(this);
     }
     restartGame() {
-        this.setState({board: new Board});
+        this.setState({board: new Board()});
     }
     handleKeyDown(event) {
         if (this.state.board.hasWon()) {
@@ -232,10 +236,10 @@ export default class MainBoard extends Component {
         }
     }
     componentDidMount() {
-        window.addEventListener('keydown', this.handleKeyDown.bind(this));
+        window.addEventListener('keydown', this.handleKeyDown);
     }
     componentWillUnmount() {
-        window.removeEventListener('keydown', this.handleKeyDown.bind(this));
+        window.removeEventListener('keydown', this.handleKeyDown);
     }
     render() {
         var cells = this.state.board.cells.map((row, rowIndex) => {
@@ -249,10 +253,10 @@ export default class MainBoard extends Component {
             .filter(tile => tile.value !== 0)
             .map(tile => <TileView tile={tile} key={tile.id} />);
         return (
-            <div className='board' onTouchStart={this.handleTouchStart.bind(this)} onTouchEnd={this.handleTouchEnd.bind(this)} tabIndex="1">
+            <div className='board' onTouchStart={this.handleTouchStart} onTouchEnd={this.handleTouchEnd} tabIndex="1">
                 {cells}
                 {tiles}
-                <EndGame board={this.state.board} onRestart={this.restartGame.bind(this)} />
+                <EndGame board={this.state.board} onRestart={this.restartGame} />
             </div>
         );
     }
