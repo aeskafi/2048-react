@@ -1,30 +1,47 @@
-# 2048 in React: Smooth Sliding Tile Puzzle
+# 2048 in React: Modern Sliding Tile Puzzle & Audio Engine
 
 [![React](https://img.shields.io/badge/React-17+-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
-[![CSS3](https://img.shields.io/badge/CSS3-Animations-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations)
-[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?style=flat-square&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![Web Audio API](https://img.shields.io/badge/Web%20Audio%20API-Synthesizer-orange?style=flat-square&logo=soundcharts&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
+[![CSS3](https://img.shields.io/badge/CSS3-Hardware%20Accelerated-1572B6?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Animations)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
-> A high-performance, responsive React implementation of the classic 2048 sliding puzzle game featuring hardware-accelerated CSS3 animations and mobile swipe gestures.
+> A polished, market-ready React implementation of the classic 2048 sliding tile puzzle featuring real-time score tracking, persistent high scores, multi-step undo history, Web Audio sound effects, and celebratory confetti effects.
 
 ---
 
-## ⚡ Architectural Highlights
+## ✨ Features & Market-Ready Polish
 
-- **Component-Driven State Engine**: The central `MainBoard` component orchestrates board state transitions, tile movements, and scoring using clean immutable state patterns with zero direct DOM mutations.
-- **Optimized CSS3 Animation Matrix**:
-  - Rather than generating 256 ($4^4$) complex diagonal/quadruple keyframe rules, tile translations are orthogonally decomposed into independent horizontal and vertical translations ($2 \times 4^2 = 32$ keyframes).
-  - This design reduced stylesheet footprint from **~70 KB down to under 10 KB** while delivering 60 FPS hardware-accelerated transitions.
-- **Dual Input Architecture**: Seamless control via desktop arrow keys (`ArrowLeft`, `ArrowRight`, `ArrowUp`, `ArrowDown`) alongside touch swipe detection (`TouchStart`, `TouchEnd`) for mobile gameplay.
-- **Smart Re-render Optimization**: `shouldComponentUpdate` lifecycle hooks on `Cell` and `TileView` ensure that only active or transitioning tiles trigger render cycles.
+- 🎵 **Native Web Audio API Sound Synthesizer**:
+  - Zero external MP3/WAV file dependencies; 100% offline, zero latency, and crystal clear.
+  - Directional sliding swoosh, dynamic harmonic merge chimes that scale in pitch as tile numbers rise, triumphant victory arpeggio, soft game-over melody, and crisp button clicks.
+  - Sound toggle with persistent preference memory in `localStorage`.
+- 🏆 **Comprehensive Score Management System**:
+  - Live Score accumulation when tiles merge.
+  - Floating animated points badge (`+4`, `+8`, `+16`...) that pops up above the score box on every combination.
+  - All-time **Best Score** tracking persisted in browser `localStorage`.
+  - Move Counter tracking efficiency.
+- ↩️ **Full Multi-Step Undo Engine**:
+  - Snapshot state history stack allowing players to revert their last moves anytime.
+- 🎉 **Canvas Confetti Celebration**:
+  - Dynamic 60 FPS HTML5 Canvas confetti particle explosion upon reaching the **2048** tile!
+  - "Keep Going" mode allowing players to continue playing for 4096, 8192, and beyond.
+- 📱 **Dual Input Controls (Keyboard, Swipe, & Virtual D-Pad)**:
+  - Desktop keyboard support: Arrow keys and <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>.
+  - Mobile touch swipe gesture detection.
+  - On-screen virtual directional D-pad for touchscreens and accessibility.
+- ⚡ **Optimized CSS3 Hardware Acceleration**:
+  - Orthogonal movement matrix ($2 \times 4^2$ animations rather than $4^4$) keeping animation CSS under 3 KB.
+  - Elastic pop on new tile spawn and 1.2x scale pulse on merged tiles.
+  - Frosted glassmorphism modal overlays for Victory and Game Over states.
+  - Responsive viewport scaling for seamless gameplay across mobile, tablet, and desktop screens.
 
 ---
 
 ## 🎮 How to Play
 
-1. **Move Tiles**: Use the arrow keys on your keyboard (or swipe on touch screens) to slide all tiles across the 4x4 grid.
-2. **Merge Numbers**: When two tiles with the same number collide, they merge into one with double the value ($2 + 2 = 4$, $4 + 4 = 8$, ..., $1024 + 1024 = 2048$).
-3. **Win Condition**: Create a tile with the number **2048** to win the game!
+1. **Move Tiles**: Use Arrow keys, <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd>, swipe on mobile, or click the on-screen D-pad.
+2. **Merge Numbers**: When two identical tiles collide, they combine into one with their sum ($2 + 2 = 4$, $4 + 4 = 8$, ..., $1024 + 1024 = 2048$).
+3. **Reach 2048**: Build the 2048 tile to win, or choose **Keep Going** to chase higher scores!
 
 ---
 
@@ -53,42 +70,43 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to start pla
 
 ---
 
-## 🏗️ Production Build
-
-To create an optimized production bundle:
+## 🏗️ Production Build & Deployment
 
 ```bash
 npm run build
 ```
 
-The compiled assets will be output to the `build/` directory, ready to deploy to Vercel, Netlify, or GitHub Pages.
+Production-ready static bundles will be compiled to `build/`, ready for zero-config deployment on Vercel, Netlify, or GitHub Pages.
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Architecture
 
 ```
 ├── public/
 │   ├── favicon.ico
-│   └── index.html           # HTML entry shell (#boardDiv mount point)
+│   └── index.html           # HTML5 shell (#boardDiv root, viewport & metadata)
 ├── src/
 │   ├── components/
-│   │   ├── cell.jsx         # Static background grid slot
-│   │   ├── endGame.jsx      # Win / Game Over modal overlay
-│   │   ├── mainBoard.jsx    # Matrix transformations, sliding algorithms, & event handlers
-│   │   └── tileView.jsx     # Position styling & dynamic translation classes
+│   │   ├── cell.jsx         # Background grid cell
+│   │   ├── endGame.jsx      # Glassmorphic Victory / Game Over modal with stats & actions
+│   │   ├── mainBoard.jsx    # Core game loop, matrix rotation, score management, & undo
+│   │   └── tileView.jsx     # Dynamic positioning, merge pop, & font scaling
 │   ├── styles/
-│   │   └── styles.css       # Orthogonal CSS3 keyframes and tile color palettes
-│   └── index.js             # React DOM rendering root
+│   │   └── styles.css       # Orthogonal animations, tile color palette, & responsive rules
+│   ├── utils/
+│   │   ├── confetti.js      # Pure HTML5 Canvas confetti explosion system
+│   │   └── sound.js         # Web Audio API procedural sound synthesizer
+│   └── index.js             # React DOM mounting entrypoint
 ├── package.json
-└── LICENSE
+└── LICENSE                  # MIT License
 ```
 
 ---
 
 ## 👤 Author & Mission
 
-Crafted and maintained with precision by **Arham Eskafi** ([arham.dev](https://arham.dev)) — Rapid MVP Specialist, Full-Stack Architect, and Tech Nomad.
+Crafted and curated with precision by **Arham Eskafi** ([arham.dev](https://arham.dev)) — Rapid MVP Specialist, Full-Stack Architect, and Tech Nomad.
 
 Follow the overland journey of building software while living on the open road at [Walk Cook Live](https://youtube.com/@walkcooklive).
 
